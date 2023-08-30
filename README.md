@@ -11,6 +11,7 @@ Overall, allowing logical flaws to persist makes news stories less safe and ethi
 List of logical fallacies below (there are 19 from this scholastic paper that reconciled new categories of logical fallacies since Aristotle's identification of 13).
 https://arxiv.org/pdf/2212.07425.pdf
 
+For this app to run, you can get your OpenAI key (here [here](https://platform.openai.com/account/api-keys)) and your Serper key for Google News API (here [here](https://serper.dev/api-key)).
 
 
 ![fallacies](./images/f.png)
