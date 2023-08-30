@@ -9,7 +9,7 @@ dichotomies, ad hominem attacks, etc - full list is below.  News Stories online 
 Comparing news articles specifically for logical flaws requires reconciliation of reasoning about arguments rather than clicking on a headline, and will leave you with a greater awareness of the quality of your news.  Overall, allowing logical flaws to persist makes news stories less safe and ethical. 
 
 ### So.. what?
-Eliminating fallacies ensures news sources remain logically valid and aligned with human reasoning. This maintains user trust, mitigates risks, and could lead to greater reader retention.
+Eliminating fallacies ensures news sources remain logically valid and aligned with human reasoning. This builds user trust and could lead to greater long-term retention.
 
 ### How do I use this app?
 For this app to run, you'll need API keys from OpenAI (get it [here](https://platform.openai.com/account/api-keys)) and Serper (get it [here](https://serper.dev/api-key)).
