@@ -13,4 +13,4 @@ https://arxiv.org/pdf/2212.07425.pdf
 
 
 
-![f.png]()
+![fallacies](./images/f.png)
