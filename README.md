@@ -1,10 +1,12 @@
 # logical-fallacy-news-chain
 Returns any logical fallacies in a news article and any related news articles for better perspective on the story.
 
+What is a logical fallacy?
 Logical fallacies are flawed reasoning or false arguments that can undermine the validity of a news source. Examples include circular reasoning, false
 dichotomies, ad hominem attacks, etc.  News Stories online are optimized to perform well on specific metrics like clicks or time spent, however optimizing for metrics alone does not guarantee logically sound reasoning.
 
-Comparing news articles specifically for logical flaws requires reconciliation of reasoning about arguments rather than a headline or image that sounds appealing. 
+How do I use this app for news?
+Comparing news articles specifically for logical flaws requires reconciliation of reasoning about arguments rather than clicking on a headline, and will leave you with a greater awareness of the quality of your news.
 
 Overall, allowing logical flaws to persist makes news stories less safe and ethical. Eliminating fallacies ensures news sources remain logically valid and aligned with human reasoning. This maintains user trust, mitigates risks, and could lead to greater reader retention.
 
