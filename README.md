@@ -20,3 +20,8 @@ https://arxiv.org/pdf/2212.07425.pdf
 
 
 ![fallacies](./images/f.png)
+
+
+To deploy on [Railway](https://railway.app/?referralCode=alphasec) using a one-click template, click the button below.
+
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template/oE8sWo)
