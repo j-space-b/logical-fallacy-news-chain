@@ -81,7 +81,7 @@ if col1.button("Search"):
                 # Show the top X relevant news articles from the previous week using Google Serper API
                 search = GoogleSerperAPIWrapper(type="news", tbs="qdr:w1", serper_api_key=serper_api_key)
                 result_dict = search.results(search_query)
-
+                token_limit = 4000
                 if not result_dict['news']:
                     st.error(f"No search results for: {search_query}.")
                 else:
@@ -92,51 +92,56 @@ if col1.button("Search"):
                         loader = WebBaseLoader(url) # bs4
                         try:
                             datanews = loader.load()
+                            try:
+                                # define model
+                                llm = ChatOpenAI(temperature=0, model='gpt-3.5-turbo', max_tokens=1024,
+                                                 openai_api_key=openai_api_key)
+                                # Chain 1: Summarize any possible logical fallacies in the text of the article
 
-                            # define model
-                            llm = ChatOpenAI(temperature=0, model='gpt-3.5-turbo', max_tokens=1024,
-                                             openai_api_key=openai_api_key)
-                            # Chain 1: Summarize any possible logical fallacies in the text of the article
+                                template1 = """You are a communications expert who speaks nothing but truth and logic and is \
+                                extremely clear for a wide audience.  Given a full news article, your job is to summarize \
+                                it accurately and with brevity in one sentence, then find any logical fallacies that \
+                                may exist and return examples in no more than 1 sentence per logical fallacy found.  \
+                                If more than one logical fallacies are found, return the top 2, in order of logical strength, \
+                                unless no logical fallacies are found, in which then state no strong logical fallacies are clearly evident. \
+                                Article: {datanews} \
+                                Communications expert: 
+                                Summary:"""
+                                prompt_template1 = PromptTemplate(input_variables=["datanews"], template=template1)
+                                chain1 = LLMChain(llm=llm, prompt=prompt_template1, output_key='summary')
 
-                            template1 = """You are a communications expert who speaks nothing but truth and logic and is \
-                            extremely clear for a wide audience.  Given a full news article, your job is to summarize \
-                            it accurately and with brevity in one sentence, then find any logical fallacies that \
-                            may exist and return examples in no more than 1 sentence per logical fallacy found.  \
-                            If more than one logical fallacies are found, return the top 2, in order of logical strength, \
-                            unless no logical fallacies are found, in which then state no strong logical fallacies are clearly evident. \
-                            Article: {datanews} \
-                            Communications expert: 
-                            Summary:"""
-                            prompt_template1 = PromptTemplate(input_variables=["datanews"], template=template1)
-                            chain1 = LLMChain(llm=llm, prompt=prompt_template1, output_key='summary')
+                                # Chain 2: Analyze the implications of any logical fallacies in the article in relation to the article summary
 
-                            # Chain 2: Analyze the implications of any logical fallacies in the article in relation to the article summary
+                                template2 = """You are an engaging professor who only speaks with truth and sound logic \
+                                while clearly conveying a point in as few words as possible.  Given the text of a news article as defined, for the Analysis output:it will be three parts.  The first part is labeled 'Summary' and returns {summary}.  The second part is labeled 'Analysis' and is two sentences.  First, you need \
+                                to return the top ranked logical fallacy in the article, among any logical fallacies that may exist, ranked by order of logical strength, \
+                                described with brevity in one sentence and confirming this logical fallacy is correct by extracting factual evidence \
+                                from the article text, then finally referencing the extracted fact in the description. Be sure to state the strongest logical fallacy might not be strong, \
+                                so is only to consider. Create the second sentence of the Analysis output by stating why this fallacy might be dangerous to the public or \
+                                especially misleading in the context of the news article, with respect to how other readers could react. \
+                                The third part is labeled 'Theoretical Counterfactual', explain any counterfactuals to the summary of the article ({summary}) that could hypothetically be true, \
+                                based on logic and the limited facts presented in the article.  If more than one counterfactuals exist, only return  \
+                                the top ranked counterfactual, ranked in order of logical strength and feasibility, described with brevity in 1 sentence. \ 
+                                Professor: \
+                                Summary: {summary}\
+                                Analysis: \ 
+                                Theoretical Counterfactual: """
+                                prompt_template2 = PromptTemplate(input_variables=["summary"], template=template2)
+                                chain2 = LLMChain(llm=llm, prompt=prompt_template2, output_key='analysis')
 
-                            template2 = """You are an engaging professor who only speaks with truth and sound logic \
-                            while clearly conveying a point in as few words as possible.  Given the text of a news article as defined, for the Analysis output:it will be three parts.  The first part is labeled 'Summary' and returns {summary}.  The second part is labeled 'Analysis' and is two sentences.  First, you need \
-                            to return the top ranked logical fallacy in the article, among any logical fallacies that may exist, ranked by order of logical strength, \
-                            described with brevity in one sentence and confirming this logical fallacy is correct by extracting factual evidence \
-                            from the article text, then finally referencing the extracted fact in the description. Be sure to state the strongest logical fallacy might not be strong, \
-                            so is only to consider. Create the second sentence of the Analysis output by stating why this fallacy might be dangerous to the public or \
-                            especially misleading in the context of the news article, with respect to how other readers could react. \
-                            The third part is labeled 'Theoretical Counterfactual', explain any counterfactuals to the summary of the article ({summary}) that could hypothetically be true, \
-                            based on logic and the limited facts presented in the article.  If more than one counterfactuals exist, only return  \
-                            the top ranked counterfactual, ranked in order of logical strength and feasibility, described with brevity in 1 sentence. \ 
-                            Professor: \
-                            Summary: {summary}\
-                            Analysis: \ 
-                            Theoretical Counterfactual: """
-                            prompt_template2 = PromptTemplate(input_variables=["summary"], template=template2)
-                            chain2 = LLMChain(llm=llm, prompt=prompt_template2, output_key='analysis')
-
-                            overall_chain1 = SequentialChain(chains=[chain1, chain2],
-                                input_variables=["datanews"],
-                                output_variables=["analysis"],
-                                verbose=False)
-                            first = (overall_chain1({"datanews":datanews}))
-                            second = first['datanews']
-                            st.success(f"Critique: \n\nTitle: {item['title']}\nLink: {item['link']}\n\n{first['analysis']}")
-                          #  st.success(f"Critique: {item['analysis']}\n\nLink: {item['link']}")
+                                overall_chain1 = SequentialChain(chains=[chain1, chain2],
+                                    input_variables=["datanews"],
+                                    output_variables=["analysis"],
+                                    verbose=False)
+                                first = (overall_chain1({"datanews":datanews}))
+                                second = first['datanews']
+                                st.success(f"Critique: \n\nTitle: {item['title']}\nLink: {item['link']}\n\n{first['analysis']}")
+                              #  st.success(f"Critique: {item['analysis']}\n\nLink: {item['link']}")
+                            except Exception as e:
+                                if "token" in str(e).lower():
+                                    num_results += 1
+                                else:
+                                    raise
                         except Exception as e:
                             st.exception(f"Error fetching {item['link']}, exception: {e}")
         except Exception as e:
@@ -155,7 +160,7 @@ if col2.button("URL Lookup"):
                 # define model
                 llm = ChatOpenAI(temperature=0, model='gpt-3.5-turbo', max_tokens=1024, openai_api_key=openai_api_key)
                 result_dict = search.results(search_query)
-
+                token_limit=4000
                 if not result_dict['news']:
                     st.error(f"No search results for: {search_query}.")
                 else:
@@ -166,54 +171,60 @@ if col2.button("URL Lookup"):
                         loader = WebBaseLoader(url) # bs4
                         try:
                             datanews = loader.load()
+                            try:
 
-                            # Chain 1: Summarize any possible logical fallacies in the text of the article
+                                # Chain 1: Summarize any possible logical fallacies in the text of the article
 
-                            template1 = """You are a communications expert who speaks nothing but truth and logic and is \
-                            extremely clear for a wide audience.  Given a full news article, your job is to summarize \
-                            it accurately and with brevity in one sentence, then find any logical fallacies that \
-                            may exist and return examples in no more than 1 sentence per logical fallacy found.  \
-                            If more than one logical fallacies are found, return the top 2, in order of logical strength, \
-                            unless no logical fallacies are found, in which then state no strong logical fallacies are clearly evident. \
-                            Article: {datanews} \
-                            Communications expert: 
-                            Summary:"""
-                            prompt_template1 = PromptTemplate(input_variables=["datanews"], template=template1)
-                            chain1 = LLMChain(llm=llm, prompt=prompt_template1, output_key='summary')
+                                template1 = """You are a communications expert who speaks nothing but truth and logic and is \
+                                extremely clear for a wide audience.  Given a full news article, your job is to summarize \
+                                it accurately and with brevity in one sentence, then find any logical fallacies that \
+                                may exist and return examples in no more than 1 sentence per logical fallacy found.  \
+                                If more than one logical fallacies are found, return the top 2, in order of logical strength, \
+                                unless no logical fallacies are found, in which then state no strong logical fallacies are clearly evident. \
+                                Article: {datanews} \
+                                Communications expert: 
+                                Summary:"""
+                                prompt_template1 = PromptTemplate(input_variables=["datanews"], template=template1)
+                                chain1 = LLMChain(llm=llm, prompt=prompt_template1, output_key='summary')
 
-                            # Chain 2: Analyze the implications of any logical fallacies in the article in relation to the article summary
+                                # Chain 2: Analyze the implications of any logical fallacies in the article in relation to the article summary
 
-                            template2 = """You are an engaging professor who only speaks with truth and sound logic \
-                            while clearly conveying a point in as few words as possible. Create two output sections: Analysis and Counterfactual. \
-                            For the Analysis output, it will be three parts.  The first part is labeled 'Summary' and returns {summary}.  The second part is labeled 'Analysis' and is two sentences.  First, you need \
-                            to return the top ranked logical fallacy in the article, among any logical fallacies that may exist, ranked by order of logical strength, \
-                            described with brevity in one sentence and confirming this logical fallacy is correct by extracting factual evidence \
-                            from the article text, then finally referencing the extracted fact in the description. Be sure to state the strongest logical fallacy might not be strong, \
-                            so is only to consider. Create the second sentence of the Analysis output by stating why this fallacy might be dangerous to the public or \
-                            especially misleading in the context of the news article, with respect to how other readers could react. \
-                            The third part is labeled 'Theoretical Counterfactual', explain any counterfactuals to the summary of the article ({summary}) that could hypothetically be true, \
-                            based on logic and the limited facts presented in the article.  If more than one counterfactuals exist, only return  \
-                            the top ranked counterfactual, ranked in order of logical strength and feasibility, described with brevity in 1 sentence. \ 
-                            Professor: \
-                            Summary: {summary}\
-                            Analysis: \ 
-                            Theoretical Counterfactual: """
-                            prompt_template2 = PromptTemplate(input_variables=["summary"], template=template2)
-                            chain2 = LLMChain(llm=llm, prompt=prompt_template2, output_key='analysis')
+                                template2 = """You are an engaging professor who only speaks with truth and sound logic \
+                                while clearly conveying a point in as few words as possible. Create two output sections: Analysis and Counterfactual. \
+                                For the Analysis output, it will be three parts.  The first part is labeled 'Summary' and returns {summary}.  The second part is labeled 'Analysis' and is two sentences.  First, you need \
+                                to return the top ranked logical fallacy in the article, among any logical fallacies that may exist, ranked by order of logical strength, \
+                                described with brevity in one sentence and confirming this logical fallacy is correct by extracting factual evidence \
+                                from the article text, then finally referencing the extracted fact in the description. Be sure to state the strongest logical fallacy might not be strong, \
+                                so is only to consider. Create the second sentence of the Analysis output by stating why this fallacy might be dangerous to the public or \
+                                especially misleading in the context of the news article, with respect to how other readers could react. \
+                                The third part is labeled 'Theoretical Counterfactual', explain any counterfactuals to the summary of the article ({summary}) that could hypothetically be true, \
+                                based on logic and the limited facts presented in the article.  If more than one counterfactuals exist, only return  \
+                                the top ranked counterfactual, ranked in order of logical strength and feasibility, described with brevity in 1 sentence. \ 
+                                Professor: \
+                                Summary: {summary}\
+                                Analysis: \ 
+                                Theoretical Counterfactual: """
+                                prompt_template2 = PromptTemplate(input_variables=["summary"], template=template2)
+                                chain2 = LLMChain(llm=llm, prompt=prompt_template2, output_key='analysis')
 
-                            overall_chain1 = SequentialChain(chains=[chain1, chain2],
-                                                             input_variables=["datanews"],
-                                                             output_variables=["analysis"],
-                                                             verbose=False)
-                            first = (overall_chain1({"datanews": datanews}))
-                            second = first['datanews']
-                            st.success(
-                                f"Critique: \n\nTitle: {item['title']}\nLink: {item['link']}\n\n{first['analysis']}")
-                            #  st.success(f"Critique: {item['analysis']}\n\nLink: {item['link']}")
+                                overall_chain1 = SequentialChain(chains=[chain1, chain2],
+                                                                 input_variables=["datanews"],
+                                                                 output_variables=["analysis"],
+                                                                 verbose=False)
+                                first = (overall_chain1({"datanews": datanews}))
+                                second = first['datanews']
+                                st.success(
+                                    f"Critique: \n\nTitle: {item['title']}\nLink: {item['link']}\n\n{first['analysis']}")
+                                    #  st.success(f"Critique: {item['analysis']}\n\nLink: {item['link']}")
+                            except Exception as e:
+                                if "token" in str(e).lower():
+                                    num_results += 1
+                                else:
+                                    raise
                         except Exception as e:
                             st.exception(f"Error fetching {item['link']}, exception: {e}")
         except Exception as e:
-            #st.exception(f"Exception: {e}")
-            continue 
+            st.exception(f"Exception: {e}")
+
 
 
