@@ -5,14 +5,10 @@ warnings.filterwarnings('ignore')
 
 import sys
 sys.path.append('../..')
-from bs4 import BeautifulSoup
-import faiss
 import json
 from langchain.chat_models import ChatOpenAI
 from langchain.document_loaders import PyPDFLoader, JSONLoader, UnstructuredFileLoader, WebBaseLoader
-from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.chains import LLMChain, SequentialChain, RetrievalQA
-from langchain.memory import VectorStoreRetrieverMemory
 from langchain.prompts import ChatPromptTemplate, PromptTemplate
 from langchain.utilities import GoogleSerperAPIWrapper
 from langchain.text_splitter import RecursiveCharacterTextSplitter, CharacterTextSplitter
