@@ -54,30 +54,6 @@ with open("fallacies.json", "w") as json_file:
     json_file.write(json_str)
 
 
-# Load dict as JSON - could not quickly find an obvious method to load dict as same format that loader.load expects
-
-loader = JSONLoader(
-    file_path='./fallacies.json',
-    jq_schema='.',
-    text_content=False)
-
-data = loader.load()
-
-# Split dictionary using same methodology as the pdf - similar amount of docs from splits as the PDF
-
-chunk_size=50
-chunk_overlap=10
-text_splitter = CharacterTextSplitter(
-    separator="\n",
-    chunk_size=chunk_size,
-    chunk_overlap=chunk_overlap,
-    length_function=len
-)
-docs2 = text_splitter.split_documents(data)
-len(docs2)
-
-
-
 # Replicating above functionality but using Streamlit for input
 st.subheader('Enter search terms or URL for analysis:')
 
@@ -238,3 +214,5 @@ if col2.button("URL Lookup"):
                             st.exception(f"Error fetching {item['link']}, exception: {e}")
         except Exception as e:
             st.exception(f"Exception: {e}")
+
+
