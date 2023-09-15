@@ -8,6 +8,8 @@ dichotomies, ad hominem attacks, etc - full list is below.  News Stories online 
 ### How do I use this app for news?
 Comparing news articles specifically for logical flaws requires reconciliation of reasoning about arguments rather than clicking on a headline, and will leave you with a greater awareness of the quality of your news.  Overall, allowing logical flaws to persist makes news stories less safe and ethical. 
 
+Run in streamlit: clone repo, then 'streamlit run newsvalidation.py`
+
 ### What effect would using this have?
 Eliminating fallacies ensures news sources remain logically valid and aligned with human reasoning. This builds user trust and could lead to greater long-term retention.
 
