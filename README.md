@@ -1,4 +1,4 @@
-# logical-fallacy-news-chain
+# fixnews.ai 
 Returns any logical fallacies in a news article and any related news articles for better perspective on the story.
 
 ### What is a logical fallacy, and why would it be in my news?
