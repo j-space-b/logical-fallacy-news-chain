@@ -213,6 +213,7 @@ if col2.button("URL Lookup"):
                         except Exception as e:
                             st.exception(f"Error fetching {item['link']}, exception: {e}")
         except Exception as e:
-            st.exception(f"Exception: {e}")
+            #st.exception(f"Exception: {e}")
+            continue 
 
 
